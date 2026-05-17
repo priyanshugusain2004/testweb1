@@ -13,14 +13,27 @@ export const AuthProvider = ({ children }) => {
     if (!isConfigured) return;
 
     let mounted = true;
-
-    async function getSession() {
+    // Handle OAuth redirect URL (parses tokens in URL hash) before regular session
+    async function initAuth() {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        // If the user was redirected back from an OAuth provider, this
+        // will parse the URL fragment and return a session.
+        const { data: { session: redirectedSession } = {}, error: urlError } =
+          await supabase.auth.getSessionFromUrl();
+
+        if (redirectedSession && mounted) {
+          setSession(redirectedSession);
+          if (redirectedSession.user) await fetchProfile(redirectedSession.user.id);
+          return;
+        }
+
+        // Fallback: check existing session normally
+        const { data: { session } = {} } = await supabase.auth.getSession();
         if (mounted) {
           setSession(session);
           if (session?.user) await fetchProfile(session.user.id);
         }
+        if (urlError) console.warn('getSessionFromUrl warning:', urlError.message || urlError);
       } catch (err) {
         console.error('Error getting session:', err);
       } finally {
@@ -28,7 +41,7 @@ export const AuthProvider = ({ children }) => {
       }
     }
 
-    getSession();
+    initAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (mounted) {
