@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }) => {
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      subscription?.unsubscribe();
     };
   }, []);
 
@@ -54,7 +54,7 @@ export const AuthProvider = ({ children }) => {
         .select('*')
         .eq('auth_user_id', userId)
         .single();
-      if (!error) setProfile(data);
+      if (!error && data) setProfile(data);
     } catch (err) {
       console.error('Error in fetchProfile:', err);
     }

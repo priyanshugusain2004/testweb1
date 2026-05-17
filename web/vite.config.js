@@ -8,4 +8,16 @@ export default defineConfig({
     port: 5000,
     allowedHosts: true,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          if (id.includes('node_modules/react')) return 'react-vendor'
+          if (id.includes('node_modules/@supabase')) return 'supabase-vendor'
+          if (id.includes('node_modules/recharts')) return 'charts'
+        },
+      },
+    },
+    chunkSizeWarningLimit: 600,
+  },
 })
