@@ -19,9 +19,9 @@ allprojects {
 
 // ---- Add or update this ext block ----
 ext {
-    compileSdkVersion = 34
+    compileSdkVersion = 36
     minSdkVersion = 21
-    targetSdkVersion = 34
+    targetSdkVersion = 36
 
     androidxAppCompatVersion = "1.6.1"
     androidxCoordinatorLayoutVersion = "1.2.0"
