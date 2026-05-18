@@ -4,9 +4,10 @@ import { updateProfile } from '../lib/db';
 import { LogOut, User } from 'lucide-react';
 
 export default function Profile() {
-  const { profile, signOut, isConfigured } = useAuth();
+  const { profile, session, signOut, isConfigured } = useAuth();
   const [formData, setFormData] = useState({
     display_name: '',
+    age: '',
     department: '',
     team: '',
     height_cm: '',
@@ -17,17 +18,19 @@ export default function Profile() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    if (profile) {
-      setFormData({
-        display_name: profile.display_name || '',
-        department: profile.department || '',
-        team: profile.team || '',
-        height_cm: profile.height_cm || '',
-        weight_kg: profile.weight_kg || '',
-        shift_type: profile.shift_type || 'Day',
-      });
-    }
-  }, [profile]);
+    const googleName = session?.user?.user_metadata?.full_name || session?.user?.user_metadata?.name || session?.user?.email?.split('@')[0] || '';
+    const savedAge = session?.user?.id ? window.localStorage.getItem(`wellness-age-${session.user.id}`) : '';
+
+    setFormData({
+      display_name: profile?.display_name || googleName || '',
+      age: profile?.age || savedAge || '',
+      department: profile?.department || '',
+      team: profile?.team || '',
+      height_cm: profile?.height_cm || '',
+      weight_kg: profile?.weight_kg || '',
+      shift_type: profile?.shift_type || 'Day',
+    });
+  }, [profile, session]);
 
   const bmi = formData.height_cm && formData.weight_kg
     ? (Number(formData.weight_kg) / Math.pow(Number(formData.height_cm) / 100, 2)).toFixed(1)
@@ -45,21 +48,40 @@ export default function Profile() {
       if (!isConfigured) {
         await new Promise(r => setTimeout(r, 500));
         setMessage('Profile saved. (Demo mode — no data was persisted)');
+        if (session?.user?.id) {
+          window.localStorage.setItem(`wellness-age-${session.user.id}`, formData.age || '');
+        }
+        setSaving(false);
+        return;
+      }
+      if (!profile?.id) {
+        setMessage('Your profile is still loading. Please wait a moment and try again.');
         setSaving(false);
         return;
       }
       const h = Number(formData.height_cm);
       const w = Number(formData.weight_kg);
-      const { error } = await updateProfile(profile.id, {
+      const updates = {
         display_name: formData.display_name,
+        age: formData.age ? Number(formData.age) : null,
         department: formData.department,
         team: formData.team,
         height_cm: h || null,
         weight_kg: w || null,
         bmi: h > 0 && w > 0 ? w / Math.pow(h / 100, 2) : null,
         shift_type: formData.shift_type,
-      });
+      };
+
+      let { error } = await updateProfile(profile.id, updates);
+      if (error && /age|column/i.test(error.message || '')) {
+        const { age, ...withoutAge } = updates;
+        const retry = await updateProfile(profile.id, withoutAge);
+        error = retry.error;
+      }
       if (error) throw error;
+      if (session?.user?.id) {
+        window.localStorage.setItem(`wellness-age-${session.user.id}`, formData.age || '');
+      }
       setMessage('Profile updated successfully.');
     } catch (err) {
       console.error(err);
@@ -110,6 +132,12 @@ export default function Profile() {
           <div className="form-group">
             <label className="form-label">Display Name</label>
             <input type="text" name="display_name" className="form-input" value={formData.display_name} onChange={handleChange} required />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Age</label>
+            <input type="number" name="age" className="form-input" value={formData.age} onChange={handleChange} min="1" max="120" placeholder="Enter your age" required />
+            <p style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>Google login provides your name and email, but not your age. Please enter it once here.</p>
           </div>
 
           <div className="flex gap-4">

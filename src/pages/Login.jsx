@@ -9,7 +9,7 @@ export default function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Handle OAuth redirect
+    // If the OAuth session already exists, send the user through.
     const handleAuthCallback = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {

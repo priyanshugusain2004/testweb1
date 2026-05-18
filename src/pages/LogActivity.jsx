@@ -29,7 +29,7 @@ export default function LogActivity() {
         const challenge = await getActiveChallenge();
         setActiveChallenge(challenge);
 
-        if (challenge) {
+        if (challenge && profile?.id) {
           const configs = await getScoringConfigs(challenge.id);
           setScoringConfigs(configs);
 
@@ -77,6 +77,12 @@ export default function LogActivity() {
     setMessage('');
 
     try {
+      if (!profile?.id) {
+        setMessage('Your profile is still loading. Please wait a moment and try again.');
+        setSubmitting(false);
+        return;
+      }
+
       if (!isConfigured) {
         await new Promise(r => setTimeout(r, 600));
         setMessage('Log submitted! (Demo mode — no data was saved)');

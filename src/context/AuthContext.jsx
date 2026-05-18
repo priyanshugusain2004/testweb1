@@ -1,8 +1,21 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase, isConfigured } from '../lib/supabase';
 import { MOCK_SESSION, MOCK_PROFILE } from '../lib/mockData';
+import { upsertParticipantFromAuthUser } from '../lib/db';
 
 const AuthContext = createContext({});
+
+function buildFallbackProfile(user) {
+  const metadata = user?.user_metadata || {}
+  const displayName = metadata.full_name || metadata.name || [metadata.first_name, metadata.last_name].filter(Boolean).join(' ') || user?.email?.split('@')[0] || 'Wellness Champion'
+
+  return {
+    id: user?.id,
+    auth_user_id: user?.id,
+    display_name: displayName,
+    email: user?.email || metadata.email || '',
+  }
+}
 
 export const AuthProvider = ({ children }) => {
   const [session, setSession] = useState(isConfigured ? null : MOCK_SESSION);
@@ -13,27 +26,18 @@ export const AuthProvider = ({ children }) => {
     if (!isConfigured) return;
 
     let mounted = true;
-    // Handle OAuth redirect URL (parses tokens in URL hash) before regular session
+    // Supabase JS v2 keeps OAuth session handling in the regular session APIs.
     async function initAuth() {
       try {
-        // If the user was redirected back from an OAuth provider, this
-        // will parse the URL fragment and return a session.
-        const { data: { session: redirectedSession } = {}, error: urlError } =
-          await supabase.auth.getSessionFromUrl();
-
-        if (redirectedSession && mounted) {
-          setSession(redirectedSession);
-          if (redirectedSession.user) await fetchProfile(redirectedSession.user.id);
-          return;
-        }
-
-        // Fallback: check existing session normally
         const { data: { session } = {} } = await supabase.auth.getSession();
         if (mounted) {
           setSession(session);
-          if (session?.user) await fetchProfile(session.user.id);
+          if (session?.user) {
+            await syncProfile(session.user);
+          } else {
+            setProfile(null);
+          }
         }
-        if (urlError) console.warn('getSessionFromUrl warning:', urlError.message || urlError);
       } catch (err) {
         console.error('Error getting session:', err);
       } finally {
@@ -47,7 +51,7 @@ export const AuthProvider = ({ children }) => {
       if (mounted) {
         setSession(session);
         if (session?.user) {
-          await fetchProfile(session.user.id);
+          await syncProfile(session.user);
         } else {
           setProfile(null);
         }
@@ -60,16 +64,22 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  async function fetchProfile(userId) {
+  async function syncProfile(user) {
     try {
-      const { data, error } = await supabase
-        .from('participants')
-        .select('*')
-        .eq('auth_user_id', userId)
-        .single();
-      if (!error && data) setProfile(data);
+      const { data, error } = await upsertParticipantFromAuthUser(user);
+      if (error) {
+        console.error('Error in syncProfile:', error);
+        if (user) setProfile(buildFallbackProfile(user));
+        return;
+      }
+      if (data) {
+        setProfile(data);
+      } else if (user) {
+        setProfile(buildFallbackProfile(user));
+      }
     } catch (err) {
-      console.error('Error in fetchProfile:', err);
+      console.error('Error in syncProfile:', err);
+      if (user) setProfile(buildFallbackProfile(user));
     }
   }
 

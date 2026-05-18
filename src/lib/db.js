@@ -1,6 +1,27 @@
 import { supabase, isConfigured } from './supabase'
 import * as mock from './mockData'
 
+function getGoogleDisplayName(user) {
+  const metadata = user?.user_metadata || {}
+  return metadata.full_name || metadata.name || [metadata.first_name, metadata.last_name].filter(Boolean).join(' ') || user?.email?.split('@')[0] || 'Wellness Champion'
+}
+
+export async function upsertParticipantFromAuthUser(user) {
+  if (!isConfigured || !user) return { data: null, error: null }
+
+  const payload = {
+    auth_user_id: user.id,
+    display_name: getGoogleDisplayName(user),
+    email: user.email || user.user_metadata?.email || '',
+  }
+
+  return supabase
+    .from('participants')
+    .upsert(payload, { onConflict: 'auth_user_id' })
+    .select('*')
+    .single()
+}
+
 export async function getActiveChallenge() {
   if (!isConfigured) return mock.ACTIVE_CHALLENGE
   const { data } = await supabase

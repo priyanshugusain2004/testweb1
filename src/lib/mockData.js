@@ -2,6 +2,7 @@ export const MOCK_PROFILE = {
   id: 'demo-participant-1',
   auth_user_id: 'demo-user-1',
   display_name: 'Alex Rivera',
+  age: 29,
   employee_id: 'EMP-0042',
   email: 'alex.rivera@bluepond.com',
   department: 'Engineering',
