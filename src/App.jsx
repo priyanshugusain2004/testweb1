@@ -32,12 +32,15 @@ function DemoBanner() {
       background: 'var(--brand-700)',
       color: 'white',
       textAlign: 'center',
-      padding: '8px 16px',
-      fontSize: 13,
+      padding: '8px 12px',
+      fontSize: 12,
       fontWeight: 600,
       letterSpacing: '0.01em',
+      wordBreak: 'break-word',
+      lineHeight: 1.4,
+      overflow: 'hidden',
     }}>
-      Demo Mode — add <code style={{ background: 'rgba(255,255,255,0.15)', padding: '1px 6px', borderRadius: 4 }}>VITE_SUPABASE_URL</code> and <code style={{ background: 'rgba(255,255,255,0.15)', padding: '1px 6px', borderRadius: 4 }}>VITE_SUPABASE_ANON_KEY</code> as Secrets to connect your real data
+      Demo Mode — add <code style={{ background: 'rgba(255,255,255,0.15)', padding: '1px 4px', borderRadius: 3, fontSize: 11 }}>VITE_SUPABASE_URL</code> and <code style={{ background: 'rgba(255,255,255,0.15)', padding: '1px 4px', borderRadius: 3, fontSize: 11 }}>VITE_SUPABASE_ANON_KEY</code> as Secrets to connect your real data
     </div>
   );
 }
