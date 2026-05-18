@@ -1,0 +1,11 @@
+{
+  "name": "Wellness App",
+  "short_name": "Wellness",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#041428",
+  "theme_color": "#2270b2",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
