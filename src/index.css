@@ -401,3 +401,8 @@ button {
   }
   .page-title { font-size: 24px; }
 }
+
+/* Remove double-card visual gap by spacing header inside single card */
+.profile-card .profile-header {
+  margin-bottom: 16px;
+}

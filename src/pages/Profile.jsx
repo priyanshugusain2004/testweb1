@@ -73,24 +73,24 @@ export default function Profile() {
     <div style={{ maxWidth: 600, margin: '0 auto', width: '100%' }}>
       <h1 className="page-title">Profile</h1>
 
-      <div className="card mb-6 profile-header">
-        <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--brand-100)', color: 'var(--brand-600)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <User size={32} />
-        </div>
-        <div className="user-info">
-          <p style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>{profile?.display_name}</p>
-          <p style={{ fontSize: 13, color: 'var(--text-tertiary)', marginTop: 2 }}>{profile?.email}</p>
-          <p style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>{profile?.department} · {profile?.team}</p>
-        </div>
-        {bmi && (
-          <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
-            <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--brand-600)', lineHeight: 1 }}>{bmi}</p>
-            <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 4 }}>BMI</p>
+      <div className="card mb-6 profile-card">
+        <div className="profile-header">
+          <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--brand-100)', color: 'var(--brand-600)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <User size={32} />
           </div>
-        )}
-      </div>
+          <div className="user-info">
+            <p style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>{profile?.display_name}</p>
+            <p style={{ fontSize: 13, color: 'var(--text-tertiary)', marginTop: 2 }}>{profile?.email}</p>
+            <p style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>{profile?.department} · {profile?.team}</p>
+          </div>
+          {bmi && (
+            <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
+              <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--brand-600)', lineHeight: 1 }}>{bmi}</p>
+              <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 4 }}>BMI</p>
+            </div>
+          )}
+        </div>
 
-      <div className="card mb-6">
         <form onSubmit={handleSave}>
           {message && (
             <div style={{ padding: 12, background: message.includes('Failed') ? 'var(--danger)' : 'var(--success)', color: 'white', borderRadius: 8, marginBottom: 20, fontSize: 14, fontWeight: 600 }}>
