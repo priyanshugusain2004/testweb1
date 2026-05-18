@@ -73,6 +73,13 @@ export default function Profile() {
     <div style={{ maxWidth: 600, margin: '0 auto', width: '100%' }}>
       <h1 className="page-title">Profile</h1>
 
+      <div className="profile-top-actions">
+        <button onClick={signOut} className="btn btn-secondary signout-outside" style={{ color: 'var(--danger)', borderColor: 'rgba(239,68,68,0.18)' }}>
+          <LogOut size={14} />
+          <span style={{ fontSize: 13 }}>Sign Out</span>
+        </button>
+      </div>
+
       <div className="card mb-6 profile-card">
         <div className="profile-header">
           <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--brand-100)', color: 'var(--brand-600)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -89,6 +96,8 @@ export default function Profile() {
               <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 4 }}>BMI</p>
             </div>
           )}
+
+          {/* Sign out moved to top-right outside the card */}
         </div>
 
         <form onSubmit={handleSave}>
@@ -140,14 +149,7 @@ export default function Profile() {
         </form>
       </div>
 
-      <button
-        onClick={signOut}
-        className="btn btn-secondary w-full"
-        style={{ color: 'var(--danger)', borderColor: 'rgba(239,68,68,0.3)' }}
-      >
-        <LogOut size={18} />
-        Sign Out
-      </button>
+      
     </div>
   );
 }
