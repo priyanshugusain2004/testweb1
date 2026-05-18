@@ -22,6 +22,25 @@ export const AuthProvider = ({ children }) => {
   const [profile, setProfile] = useState(isConfigured ? null : MOCK_PROFILE);
   const [loading, setLoading] = useState(isConfigured);
 
+  async function syncProfile(user) {
+    try {
+      const { data, error } = await upsertParticipantFromAuthUser(user);
+      if (error) {
+        console.error('Error in syncProfile:', error);
+        if (user) setProfile(buildFallbackProfile(user));
+        return;
+      }
+      if (data) {
+        setProfile(data);
+      } else if (user) {
+        setProfile(buildFallbackProfile(user));
+      }
+    } catch (err) {
+      console.error('Error in syncProfile:', err);
+      if (user) setProfile(buildFallbackProfile(user));
+    }
+  }
+
   useEffect(() => {
     if (!isConfigured) return;
 
@@ -64,25 +83,6 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  async function syncProfile(user) {
-    try {
-      const { data, error } = await upsertParticipantFromAuthUser(user);
-      if (error) {
-        console.error('Error in syncProfile:', error);
-        if (user) setProfile(buildFallbackProfile(user));
-        return;
-      }
-      if (data) {
-        setProfile(data);
-      } else if (user) {
-        setProfile(buildFallbackProfile(user));
-      }
-    } catch (err) {
-      console.error('Error in syncProfile:', err);
-      if (user) setProfile(buildFallbackProfile(user));
-    }
-  }
-
   const value = {
     session,
     profile,
@@ -98,4 +98,5 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);

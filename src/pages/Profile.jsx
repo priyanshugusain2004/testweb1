@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { updateProfile } from '../lib/db';
 import { LogOut, User } from 'lucide-react';
@@ -16,20 +16,25 @@ export default function Profile() {
   });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const initialized = useRef(false);
 
   useEffect(() => {
-    const googleName = session?.user?.user_metadata?.full_name || session?.user?.user_metadata?.name || session?.user?.email?.split('@')[0] || '';
-    const savedAge = session?.user?.id ? window.localStorage.getItem(`wellness-age-${session.user.id}`) : '';
+    // Only initialize once when profile or session changes
+    if (!initialized.current || profile || session) {
+      const googleName = session?.user?.user_metadata?.full_name || session?.user?.user_metadata?.name || session?.user?.email?.split('@')[0] || '';
+      const savedAge = session?.user?.id ? window.localStorage.getItem(`wellness-age-${session.user.id}`) : '';
 
-    setFormData({
-      display_name: profile?.display_name || googleName || '',
-      age: profile?.age || savedAge || '',
-      department: profile?.department || '',
-      team: profile?.team || '',
-      height_cm: profile?.height_cm || '',
-      weight_kg: profile?.weight_kg || '',
-      shift_type: profile?.shift_type || 'Day',
-    });
+      setFormData({
+        display_name: profile?.display_name || googleName || '',
+        age: profile?.age || savedAge || '',
+        department: profile?.department || '',
+        team: profile?.team || '',
+        height_cm: profile?.height_cm || '',
+        weight_kg: profile?.weight_kg || '',
+        shift_type: profile?.shift_type || 'Day',
+      });
+      initialized.current = true;
+    }
   }, [profile, session]);
 
   const bmi = formData.height_cm && formData.weight_kg
@@ -74,6 +79,7 @@ export default function Profile() {
 
       let { error } = await updateProfile(profile.id, updates);
       if (error && /age|column/i.test(error.message || '')) {
+        // eslint-disable-next-line no-unused-vars
         const { age, ...withoutAge } = updates;
         const retry = await updateProfile(profile.id, withoutAge);
         error = retry.error;

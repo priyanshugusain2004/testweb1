@@ -1,4 +1,4 @@
-import { StrictMode, useEffect } from 'react'
+import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
@@ -31,7 +31,7 @@ createRoot(document.getElementById('root')).render(
     if (Keyboard && Keyboard.setResizeMode) {
       Keyboard.setResizeMode({ mode: 'native' }).catch(() => {})
     }
-  } catch (e) {
+  } catch {
     // ignore: when plugin isn't installed or running in unsupported environment
   }
 })()
