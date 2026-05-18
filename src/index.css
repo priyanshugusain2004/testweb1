@@ -249,9 +249,14 @@ button {
 .card {
   background: var(--bg-surface);
   border-radius: var(--radius-lg);
-  padding: 24px;
+  padding: 16px;
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-color);
+}
+
+/* Reduce the seam between two stacked cards */
+.card + .card {
+  margin-top: 12px;
 }
 
 .stat-grid {
