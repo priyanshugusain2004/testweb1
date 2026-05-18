@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getActiveChallenge, getScoringConfigs, getTodayLog, upsertActivityLog } from '../lib/db';
 import { calculatePoints } from '../lib/scoring';
@@ -20,8 +20,6 @@ export default function LogActivity() {
     workout_minutes: '',
     no_added_sugar_day: false,
   });
-
-  const [estimatedPoints, setEstimatedPoints] = useState(0);
 
   useEffect(() => {
     async function fetchData() {
@@ -53,17 +51,20 @@ export default function LogActivity() {
     fetchData();
   }, [profile]);
 
-  useEffect(() => {
-    if (activeChallenge && scoringConfigs.length > 0) {
-      const draft = {
-        steps_count: Number(formData.steps_count) || 0,
-        water_intake_liters: Number(formData.water_intake_liters) || 0,
-        yoga_minutes: Number(formData.yoga_minutes) || 0,
-        workout_minutes: Number(formData.workout_minutes) || 0,
-        no_added_sugar_day: formData.no_added_sugar_day,
-      };
-      setEstimatedPoints(calculatePoints(draft, scoringConfigs, activeChallenge));
+  const estimatedPoints = useMemo(() => {
+    if (!(activeChallenge && scoringConfigs.length > 0)) {
+      return 0;
     }
+
+    const draft = {
+      steps_count: Number(formData.steps_count) || 0,
+      water_intake_liters: Number(formData.water_intake_liters) || 0,
+      yoga_minutes: Number(formData.yoga_minutes) || 0,
+      workout_minutes: Number(formData.workout_minutes) || 0,
+      no_added_sugar_day: formData.no_added_sugar_day,
+    };
+
+    return calculatePoints(draft, scoringConfigs, activeChallenge);
   }, [formData, activeChallenge, scoringConfigs]);
 
   const handleChange = (e) => {

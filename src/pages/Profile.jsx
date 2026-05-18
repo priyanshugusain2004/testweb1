@@ -1,36 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { updateProfile } from '../lib/db';
 import { LogOut, User } from 'lucide-react';
 
-export default function Profile() {
-  const { profile, session, signOut, isConfigured } = useAuth();
-  const [formData, setFormData] = useState({
-    display_name: '',
-    age: '',
-    department: '',
-    team: '',
-    height_cm: '',
-    weight_kg: '',
-    shift_type: 'Day',
-  });
+function getInitialFormData(profile, session) {
+  const googleName = session?.user?.user_metadata?.full_name || session?.user?.user_metadata?.name || session?.user?.email?.split('@')[0] || '';
+  const savedAge = session?.user?.id ? window.localStorage.getItem(`wellness-age-${session.user.id}`) : '';
+
+  return {
+    display_name: profile?.display_name || googleName || '',
+    age: profile?.age || savedAge || '',
+    department: profile?.department || '',
+    team: profile?.team || '',
+    height_cm: profile?.height_cm || '',
+    weight_kg: profile?.weight_kg || '',
+    shift_type: profile?.shift_type || 'Day',
+  };
+}
+
+function ProfileForm({ profile, session, signOut, isConfigured }) {
+  const [formData, setFormData] = useState(() => getInitialFormData(profile, session));
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
-
-  useEffect(() => {
-    const googleName = session?.user?.user_metadata?.full_name || session?.user?.user_metadata?.name || session?.user?.email?.split('@')[0] || '';
-    const savedAge = session?.user?.id ? window.localStorage.getItem(`wellness-age-${session.user.id}`) : '';
-
-    setFormData({
-      display_name: profile?.display_name || googleName || '',
-      age: profile?.age || savedAge || '',
-      department: profile?.department || '',
-      team: profile?.team || '',
-      height_cm: profile?.height_cm || '',
-      weight_kg: profile?.weight_kg || '',
-      shift_type: profile?.shift_type || 'Day',
-    });
-  }, [profile, session]);
 
   const bmi = formData.height_cm && formData.weight_kg
     ? (Number(formData.weight_kg) / Math.pow(Number(formData.height_cm) / 100, 2)).toFixed(1)
@@ -74,7 +65,8 @@ export default function Profile() {
 
       let { error } = await updateProfile(profile.id, updates);
       if (error && /age|column/i.test(error.message || '')) {
-        const { age, ...withoutAge } = updates;
+        const withoutAge = { ...updates };
+        delete withoutAge.age;
         const retry = await updateProfile(profile.id, withoutAge);
         error = retry.error;
       }
@@ -118,8 +110,6 @@ export default function Profile() {
               <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 4 }}>BMI</p>
             </div>
           )}
-
-          {/* Sign out moved to top-right outside the card */}
         </div>
 
         <form onSubmit={handleSave}>
@@ -176,8 +166,21 @@ export default function Profile() {
           </button>
         </form>
       </div>
-
-      
     </div>
-  );
+  )
+}
+
+export default function Profile() {
+  const { profile, session, signOut, isConfigured } = useAuth();
+  const formKey = profile?.id || session?.user?.id || 'guest';
+
+  return (
+    <ProfileForm
+      key={formKey}
+      profile={profile}
+      session={session}
+      signOut={signOut}
+      isConfigured={isConfigured}
+    />
+  )
 }
