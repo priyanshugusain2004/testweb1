@@ -1,10 +1,24 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, memo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getActiveChallenge, getTodayLog, getWeeklyLogs } from '../lib/db';
 import { Activity, Droplet, Flame, Footprints } from 'lucide-react';
 // Lightweight fallback: use simple HTML/CSS bars instead of recharts
 
-export default function Home() {
+const StatCard = memo(({ icon: Icon, color, bgColor, label, value }) => (
+  <div className="stat-card">
+    <div className="stat-icon" style={color ? { color, background: bgColor } : {}}>
+      <Icon size={22} />
+    </div>
+    <div className="stat-content">
+      <h3>{label}</h3>
+      <p>{value}</p>
+    </div>
+  </div>
+));
+
+StatCard.displayName = 'StatCard';
+
+export default memo(function Home() {
   const { profile } = useAuth();
   const [activeChallenge, setActiveChallenge] = useState(null);
   const [todayLog, setTodayLog] = useState(null);
@@ -76,27 +90,25 @@ export default function Home() {
 
       <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16, color: 'var(--text-secondary)' }}>Today's Progress</h2>
       <div className="stat-grid">
-        <div className="stat-card">
-          <div className="stat-icon"><Footprints size={22} /></div>
-          <div className="stat-content">
-            <h3>Steps</h3>
-            <p>{(todayLog?.steps_count || 0).toLocaleString()}</p>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon" style={{ color: 'var(--accent-600)', background: 'var(--brand-50)' }}><Droplet size={22} /></div>
-          <div className="stat-content">
-            <h3>Water (L)</h3>
-            <p>{todayLog?.water_intake_liters || 0}</p>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon" style={{ color: '#7c3aed', background: '#f5f3ff' }}><Activity size={22} /></div>
-          <div className="stat-content">
-            <h3>Active Min</h3>
-            <p>{(todayLog?.yoga_minutes || 0) + (todayLog?.workout_minutes || 0)}</p>
-          </div>
-        </div>
+        <StatCard
+          icon={Footprints}
+          label="Steps"
+          value={(todayLog?.steps_count || 0).toLocaleString()}
+        />
+        <StatCard
+          icon={Droplet}
+          color="var(--accent-600)"
+          bgColor="var(--brand-50)"
+          label="Water (L)"
+          value={todayLog?.water_intake_liters || 0}
+        />
+        <StatCard
+          icon={Activity}
+          color="#7c3aed"
+          bgColor="#f5f3ff"
+          label="Active Min"
+          value={(todayLog?.yoga_minutes || 0) + (todayLog?.workout_minutes || 0)}
+        />
       </div>
 
       <div className="card mt-8">
@@ -124,4 +136,4 @@ export default function Home() {
       </div>
     </div>
   );
-}
+});

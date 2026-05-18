@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, memo } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { LayoutDashboard, PlusCircle, Trophy, BarChart3, User, Info } from 'lucide-react';
 
-export default function Layout() {
+export default memo(function Layout() {
   const { session, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -87,4 +87,4 @@ export default function Layout() {
       `}} />
     </div>
   );
-}
+});
