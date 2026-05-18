@@ -1,7 +1,8 @@
-import { StrictMode } from 'react'
+import { StrictMode, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
+// Dynamically import Capacitor plugins to avoid build-time errors
 
 // Register the PWA service worker (fallback: register generated /sw.js)
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
@@ -21,3 +22,16 @@ createRoot(document.getElementById('root')).render(
     <App />
   </StrictMode>,
 )
+
+// Try to set keyboard resize mode on supported Capacitor platforms
+;(async () => {
+  try {
+    const mod = await import('@capacitor/keyboard')
+    const Keyboard = mod && mod.Keyboard ? mod.Keyboard : mod
+    if (Keyboard && Keyboard.setResizeMode) {
+      Keyboard.setResizeMode({ mode: 'native' }).catch(() => {})
+    }
+  } catch (e) {
+    // ignore: when plugin isn't installed or running in unsupported environment
+  }
+})()
