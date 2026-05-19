@@ -71,9 +71,10 @@ export default function Layout() {
             key={item.to}
             to={item.to}
             className={({ isActive }) => `nav-item ${isActive && location.pathname === item.to ? 'active' : ''}`}
+            title={item.label}
           >
-            <item.icon size={24} />
-            <span>{item.label}</span>
+            <item.icon size={24} aria-label={item.label} />
+            <span className="nav-label">{item.label}</span>
           </NavLink>
         ))}
       </nav>
@@ -82,6 +83,35 @@ export default function Layout() {
         @media (max-width: 768px) {
           .bottom-nav {
             display: flex !important;
+          }
+        }
+        
+        @media (max-width: 480px) {
+          .bottom-nav {
+            padding: 6px 8px;
+          }
+          .bottom-nav .nav-item {
+            padding: 6px 4px;
+            font-size: 9px;
+            gap: 2px;
+          }
+          .bottom-nav .nav-item svg {
+            width: 20px;
+            height: 20px;
+          }
+        }
+        
+        @media (max-width: 375px) {
+          .bottom-nav .nav-label {
+            display: none;
+          }
+          .bottom-nav .nav-item {
+            padding: 8px;
+            font-size: 0;
+          }
+          .bottom-nav .nav-item svg {
+            width: 24px;
+            height: 24px;
           }
         }
       `}} />

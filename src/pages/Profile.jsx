@@ -130,23 +130,23 @@ function ProfileForm({ profile, session, signOut, isConfigured }) {
             <p style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>Google login provides your name and email, but not your age. Please enter it once here.</p>
           </div>
 
-          <div className="flex gap-4">
-            <div className="form-group" style={{ flex: 1 }}>
+          <div className="flex gap-4" style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+            <div className="form-group" style={{ flex: '1 1 calc(50% - 8px)', minWidth: 0 }}>
               <label className="form-label">Department</label>
               <input type="text" name="department" className="form-input" value={formData.department} onChange={handleChange} />
             </div>
-            <div className="form-group" style={{ flex: 1 }}>
+            <div className="form-group" style={{ flex: '1 1 calc(50% - 8px)', minWidth: 0 }}>
               <label className="form-label">Team</label>
               <input type="text" name="team" className="form-input" value={formData.team} onChange={handleChange} />
             </div>
           </div>
 
-          <div className="flex gap-4">
-            <div className="form-group" style={{ flex: 1 }}>
+          <div className="flex gap-4" style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+            <div className="form-group" style={{ flex: '1 1 calc(50% - 8px)', minWidth: 0 }}>
               <label className="form-label">Height (cm)</label>
               <input type="number" name="height_cm" className="form-input" value={formData.height_cm} onChange={handleChange} />
             </div>
-            <div className="form-group" style={{ flex: 1 }}>
+            <div className="form-group" style={{ flex: '1 1 calc(50% - 8px)', minWidth: 0 }}>
               <label className="form-label">Weight (kg)</label>
               <input type="number" name="weight_kg" className="form-input" value={formData.weight_kg} onChange={handleChange} />
             </div>
