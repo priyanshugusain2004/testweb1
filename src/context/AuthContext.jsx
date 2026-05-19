@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase, isConfigured } from '../lib/supabase';
 import { MOCK_SESSION, MOCK_PROFILE } from '../lib/mockData';
 import { upsertParticipantFromAuthUser } from '../lib/db';
+import authTestUtils from '../lib/authTestUtils';
 
 const AuthContext = createContext({});
 
@@ -42,7 +43,11 @@ export const AuthProvider = ({ children }) => {
   }
 
   useEffect(() => {
-    if (!isConfigured) return;
+    if (!isConfigured) {
+      // Log test utilities availability in demo mode
+      console.log('📱 Auth Testing Utilities available: window.__testAuth');
+      return;
+    }
 
     let mounted = true;
     // Supabase JS v2 keeps OAuth session handling in the regular session APIs.
@@ -89,6 +94,8 @@ export const AuthProvider = ({ children }) => {
     loading,
     isConfigured,
     signOut: () => isConfigured ? supabase.auth.signOut() : Promise.resolve(),
+    // Export test utilities for debugging
+    authTestUtils,
   };
 
   return (
