@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Browser } from '@capacitor/browser';
-import { App as CapacitorApp } from '@capacitor/app';
 import { supabase, isConfigured } from '../lib/supabase';
 import { Activity } from 'lucide-react';
 
