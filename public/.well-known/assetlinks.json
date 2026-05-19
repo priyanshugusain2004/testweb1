@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.priyanshu.testweb1",
+      "sha256_cert_fingerprints": [
+        "NOTE: Replace with your actual SHA256 fingerprint from Google Play Console or keytool",
+        "To generate: keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android"
+      ]
+    }
+  }
+]

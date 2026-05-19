@@ -7,11 +7,13 @@
     "dev": "vite",
     "build": "vite build",
     "android:build": "npm run build && npx cap sync android && cd android && ./gradlew assembleDebug",
+    "android:test": "npm run build && npx cap sync android",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",
+    "@capacitor/browser": "^8.1.0",
     "@capacitor/core": "^8.3.4",
     "@capacitor/keyboard": "^8.0.3",
     "@capacitor/splash-screen": "^8.0.1",
