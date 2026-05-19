@@ -1,12 +1,33 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Browser } from '@capacitor/browser';
+import { App as CapacitorApp } from '@capacitor/app';
 import { supabase, isConfigured } from '../lib/supabase';
 import { Activity } from 'lucide-react';
 
+/**
+ * Login Component with Google OAuth Integration
+ * 
+ * Handles:
+ * - Google OAuth sign-in via Supabase
+ * - Deep link callback from Android (com.priyanshu.testweb1://auth-callback)
+ * - Browser opening/closing for OAuth flow
+ * - Token exchange and session management
+ */
 export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+
+  // Detect if running on Capacitor/native mobile app
+  const isNativeApp = () => {
+    return typeof window !== 'undefined' && window.Capacitor !== undefined;
+  };
+
+  // Detect if running on Android specifically
+  const isAndroid = () => {
+    return isNativeApp() && /android/i.test(navigator.userAgent);
+  };
 
   useEffect(() => {
     // If the OAuth session already exists, send the user through.
@@ -18,7 +39,55 @@ export default function Login() {
     };
 
     handleAuthCallback();
+
+    // On Android, listen for OAuth callback deep links
+    if (isAndroid()) {
+      window.oauthCallback = handleOAuthCallback;
+    }
+
+    return () => {
+      delete window.oauthCallback;
+    };
   }, [navigate]);
+
+  /**
+   * Handle OAuth callback from native Android (via MainActivity.java)
+   * The Android native layer passes code/state through window.oauthCallback
+   */
+  const handleOAuthCallback = async (params) => {
+    console.log('[OAuth] Callback received from Android:', params);
+
+    if (params.error) {
+      setError(`OAuth Error: ${params.error}. ${params.error_description || ''}`);
+      setLoading(false);
+      return;
+    }
+
+    if (params.code) {
+      // Exchange code for session via Supabase
+      try {
+        const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(params.code);
+        
+        if (exchangeError) {
+          console.error('[OAuth] Code exchange failed:', exchangeError);
+          setError(`Failed to complete sign-in: ${exchangeError.message}`);
+          setLoading(false);
+          return;
+        }
+
+        if (data?.session) {
+          console.log('[OAuth] Session established, redirecting to app');
+          setError(null);
+          // Redirect to home page
+          navigate('/');
+        }
+      } catch (err) {
+        console.error('[OAuth] Exception during code exchange:', err);
+        setError(err.message || 'Failed to sign in');
+        setLoading(false);
+      }
+    }
+  };
 
   const handleGoogleLogin = async () => {
     setLoading(true);
@@ -31,15 +100,60 @@ export default function Login() {
     }
 
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      let redirectUri = `${window.location.origin}/`;
+
+      // On Android native app, use custom app scheme for callback
+      if (isAndroid()) {
+        redirectUri = 'com.priyanshu.testweb1://auth-callback';
+        console.log('[OAuth] Using Android app scheme redirect:', redirectUri);
+      }
+
+      console.log('[OAuth] Initiating Google login with redirectUri:', redirectUri);
+
+      const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/`,
+          redirectTo: redirectUri,
+          // Use external browser on Android for better security and reliability
+          ...(isAndroid() && { skipBrowserRedirect: true })
         },
       });
 
-      if (error) throw error;
+      if (oauthError) {
+        throw oauthError;
+      }
+
+      // On Android, manually open the OAuth URL in external browser
+      if (isAndroid() && data?.url) {
+        console.log('[OAuth] Opening OAuth URL in external browser');
+        try {
+          // Close any existing browser session first
+          try {
+            await Browser.close();
+          } catch (e) {
+            // Ignore - browser may not be open
+          }
+
+          // Open OAuth URL in external Chrome Custom Tab
+          await Browser.open({ 
+            url: data.url,
+            toolbarColor: '#6366f1', // Indigo color to match app theme
+            windowName: '_blank'
+          });
+
+          // Note: Browser will close automatically after OAuth redirect
+          // MainActivity will intercept the deep link and call window.oauthCallback()
+        } catch (browserErr) {
+          console.error('[OAuth] Failed to open browser:', browserErr);
+          setError('Failed to open sign-in page. Please try again.');
+          setLoading(false);
+        }
+      }
+
+      // On web/desktop, Supabase handles the redirect automatically
+      // No need to manually open browser
     } catch (err) {
+      console.error('[OAuth] Sign-in error:', err);
       setError(err.message || 'Failed to sign in with Google');
       setLoading(false);
     }

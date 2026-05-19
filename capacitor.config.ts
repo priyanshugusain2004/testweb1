@@ -6,7 +6,10 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   bundledWebRuntime: false,
   server: {
-    androidScheme: 'https'
+    androidScheme: 'https',
+    iosScheme: 'capacitor',
+    hostname: 'localhost',
+    cleartext: true
   },
   plugins: {
     SplashScreen: {
@@ -14,6 +17,10 @@ const config: CapacitorConfig = {
       launchAutoHide: true,
       backgroundColor: '#ffffffff',
       androidSplashResourceName: 'splash'
+    },
+    Browser: {
+      // Use external browser for OAuth to ensure proper redirect handling
+      presentationStyle: 'popover'
     }
   }
 };
