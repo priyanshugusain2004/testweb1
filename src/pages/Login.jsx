@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Browser } from '@capacitor/browser';
 import { supabase, isConfigured } from '../lib/supabase';
@@ -18,42 +18,18 @@ export default function Login() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  // Detect if running on Capacitor/native mobile app
-  const isNativeApp = () => {
-    return typeof window !== 'undefined' && window.Capacitor !== undefined;
-  };
-
   // Detect if running on Android specifically
-  const isAndroid = () => {
-    return isNativeApp() && /android/i.test(navigator.userAgent);
-  };
-
-  useEffect(() => {
-    // If the OAuth session already exists, send the user through.
-    const handleAuthCallback = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate('/');
-      }
-    };
-
-    handleAuthCallback();
-
-    // On Android, listen for OAuth callback deep links
-    if (isAndroid()) {
-      window.oauthCallback = handleOAuthCallback;
-    }
-
-    return () => {
-      delete window.oauthCallback;
-    };
-  }, [navigate]);
+  const isAndroid = useCallback(() => {
+    return typeof window !== 'undefined'
+      && window.Capacitor !== undefined
+      && /android/i.test(navigator.userAgent);
+  }, []);
 
   /**
    * Handle OAuth callback from native Android (via MainActivity.java)
    * The Android native layer passes code/state through window.oauthCallback
    */
-  const handleOAuthCallback = async (params) => {
+  const handleOAuthCallback = useCallback(async (params) => {
     console.log('[OAuth] Callback received from Android:', params);
 
     if (params.error) {
@@ -86,7 +62,28 @@ export default function Login() {
         setLoading(false);
       }
     }
-  };
+  }, [navigate]);
+
+  useEffect(() => {
+    // If the OAuth session already exists, send the user through.
+    const handleAuthCallback = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate('/');
+      }
+    };
+
+    handleAuthCallback();
+
+    // On Android, listen for OAuth callback deep links
+    if (isAndroid()) {
+      window.oauthCallback = handleOAuthCallback;
+    }
+
+    return () => {
+      delete window.oauthCallback;
+    };
+  }, [navigate, isAndroid, handleOAuthCallback]);
 
   const handleGoogleLogin = async () => {
     setLoading(true);
@@ -129,7 +126,7 @@ export default function Login() {
           // Close any existing browser session first
           try {
             await Browser.close();
-          } catch (e) {
+          } catch {
             // Ignore - browser may not be open
           }
 
